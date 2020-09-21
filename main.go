@@ -120,7 +120,7 @@ func main() {
 		Bootstrap: bootstrap.NewBootstrap(mgr),
 		Log:       ctrl.Log.WithName("controllers").WithName("CommonService"),
 		Scheme:    mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}).SetupWithManager(mgr, operatorNs); err != nil {
 		klog.Error(err, "unable to create controller", "controller", "CommonService")
 		os.Exit(1)
 	}

@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 
 	utilyaml "github.com/ghodss/yaml"
@@ -217,43 +218,43 @@ func checkKeyBeforeMerging(key string, defaultMap interface{}, changedMap interf
 }
 
 // Check if the request's NamespacedName is equal "ibm-common-services/common-service"
-func checkNamespace(key string) bool {
-	if key != "ibm-common-services/common-service" {
+func checkNamespace(key, namespace string) bool {
+	if key != fmt.Sprintf("%s/common-service", namespace) {
 		klog.Infof("Ignore reconcile when commonservices.operator.ibm.com is NamespacedName '%s', only reconcile for NamespacedName 'ibm-common-services/common-service'", key)
 		return false
 	}
 	return true
 }
 
-func filterNamespacePredicate() predicate.Predicate {
+func filterNamespacePredicate(namespace string) predicate.Predicate {
 	return predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
 			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.Meta.GetNamespace() + "/" + e.Meta.GetName()
-			return checkNamespace(key)
+			return checkNamespace(key, namespace)
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.MetaNew.GetNamespace() + "/" + e.MetaNew.GetName()
-			return checkNamespace(key)
+			return checkNamespace(key, namespace)
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
 			// Evaluates to false if the object has been confirmed deleted.
 			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.Meta.GetNamespace() + "/" + e.Meta.GetName()
-			return !e.DeleteStateUnknown && checkNamespace(key)
+			return !e.DeleteStateUnknown && checkNamespace(key, namespace)
 		},
 		GenericFunc: func(e event.GenericEvent) bool {
 			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.Meta.GetNamespace() + "/" + e.Meta.GetName()
-			return checkNamespace(key)
+			return checkNamespace(key, namespace)
 		},
 	}
 }
 
-func (r *CommonServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *CommonServiceReconciler) SetupWithManager(mgr ctrl.Manager, namespace string) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&apiv3.CommonService{}).
-		WithEventFilter(filterNamespacePredicate()).
+		WithEventFilter(filterNamespacePredicate(namespace)).
 		Complete(r)
 }
