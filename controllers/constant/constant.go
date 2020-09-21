@@ -34,10 +34,10 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: ibm-common-service-operator-operatorgroup
-  namespace: ibm-common-services
+  namespace: cs-test
 spec:
   targetNamespaces:
-  - ibm-common-services
+  - cs-test
 `
 
 // CsCR is the default common service operator CR
@@ -48,7 +48,7 @@ metadata:
   annotations:
     version: "-1"
   name: common-service
-  namespace: ibm-common-services
+  namespace: cs-test
 spec:
   size: medium
 `
@@ -61,7 +61,7 @@ metadata:
   annotations:
     version: "-1"
   name: common-service
-  namespace: ibm-common-services
+  namespace: cs-test
 spec:
   size: as-is
 `

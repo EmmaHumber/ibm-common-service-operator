@@ -27,13 +27,13 @@ metadata:
       apiVersion: v1
       kind: Namespace
       metadata:
-        name: ibm-common-services
+        name: cs-test
     csOperandConfig: |-
       apiVersion: operator.ibm.com/v1alpha1
       kind: OperandConfig
       metadata:
         name: common-service
-        namespace: ibm-common-services
+        namespace: cs-test
         annotations:
           version: "7"
       spec:
@@ -132,115 +132,115 @@ metadata:
       kind: OperandRegistry
       metadata:
         name: common-service
-        namespace: ibm-common-services
+        namespace: cs-test
         annotations:
           version: "6"
       spec:
         operators:
         - name: ibm-metering-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-metering-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-licensing-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-licensing-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-mongodb-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-mongodb-operator-app
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-cert-manager-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-cert-manager-operator
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-iam-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-iam-operator
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-healthcheck-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-healthcheck-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-commonui-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-commonui-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-management-ingress-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-management-ingress-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-ingress-nginx-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-ingress-nginx-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-auditlogging-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-auditlogging-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-catalog-ui-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-catalog-ui-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-platform-api-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-platform-api-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-helm-api-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-helm-api-operator-app
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-helm-repo-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-helm-repo-operator-app
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-monitoring-exporters-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-monitoring-exporters-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - name: ibm-monitoring-prometheusext-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           channel: beta
           packageName: ibm-monitoring-prometheusext-operator-app
           scope: public
@@ -248,14 +248,14 @@ metadata:
           sourceNamespace: openshift-marketplace
         - channel: beta
           name: ibm-monitoring-grafana-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           packageName: ibm-monitoring-grafana-operator-app
           scope: public
           sourceName: opencloud-operators
           sourceNamespace: openshift-marketplace
         - channel: beta
           name: ibm-elastic-stack-operator
-          namespace: ibm-common-services
+          namespace: cs-test
           packageName: ibm-elastic-stack-operator-app
           scope: public
           sourceName: opencloud-operators
@@ -265,7 +265,7 @@ metadata:
       kind: Subscription
       metadata:
         name: ibm-common-service-operator
-        namespace: ibm-common-services
+        namespace: cs-test
         annotations:
           version: "6"
       spec:
@@ -381,7 +381,7 @@ metadata:
       kind: ServiceAccount
       metadata:
         name: secretshare
-        namespace: ibm-common-services
+        namespace: cs-test
       ---
       apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRole
@@ -485,7 +485,7 @@ metadata:
       subjects:
       - kind: ServiceAccount
         name: secretshare
-        namespace: ibm-common-services
+        namespace: cs-test
       roleRef:
         kind: ClusterRole
         name: secretshare
@@ -495,7 +495,7 @@ metadata:
       kind: Deployment
       metadata:
         name: secretshare
-        namespace: ibm-common-services
+        namespace: cs-test
         annotations:
           version: "7"
       spec:
@@ -548,7 +548,7 @@ metadata:
       kind: SecretShare
       metadata:
         name: common-services
-        namespace: ibm-common-services
+        namespace: cs-test
       spec:
         # Secrets to share for adopter compatibility to Common Services 3.2.4
         secretshares:
@@ -1990,13 +1990,13 @@ metadata:
       kind: ServiceAccount
       metadata:
         name: ibm-common-service-webhook
-        namespace: ibm-common-services
+        namespace: cs-test
       ---
       apiVersion: rbac.authorization.k8s.io/v1
       kind: Role
       metadata:
         name: ibm-common-service-webhook
-        namespace: ibm-common-services
+        namespace: cs-test
       rules:
       - apiGroups:
         - ""
@@ -2077,7 +2077,7 @@ metadata:
       apiVersion: rbac.authorization.k8s.io/v1
       metadata:
         name: ibm-common-service-webhook
-        namespace: ibm-common-services
+        namespace: cs-test
       subjects:
       - kind: ServiceAccount
         name: ibm-common-service-webhook
@@ -2125,7 +2125,7 @@ metadata:
       subjects:
         - kind: ServiceAccount
           name: ibm-common-service-webhook
-          namespace: ibm-common-services
+          namespace: cs-test
       roleRef:
         kind: ClusterRole
         name: ibm-common-service-webhook
@@ -2135,7 +2135,7 @@ metadata:
       kind: Deployment
       metadata:
         name: ibm-common-service-webhook
-        namespace: ibm-common-services
+        namespace: cs-test
         annotations:
           version: "6"
       spec:
@@ -2191,7 +2191,7 @@ metadata:
       kind: PodPreset
       metadata:
         name: ibm-common-service-webhook
-        namespace: ibm-common-services
+        namespace: cs-test
       spec: {}
   labels:
     operatorframework.io/arch.amd64: supported

@@ -93,14 +93,14 @@ func main() {
 		klog.Error("get operator namespace failed: ", err)
 		os.Exit(1)
 	}
-	// Create ibm-common-services namespace
+	// Create cs-test namespace
 	if err := bs.CreateNamespace(); err != nil {
-		klog.Error("create ibm-common-services namespace failed: ", err)
+		klog.Error("create cs-test namespace failed: ", err)
 		os.Exit(1)
 	}
 
-	if operatorNs == "ibm-common-services" || operatorNs == "openshift-operators" {
-		klog.Info("create CommonService CR in ibm-common-services namespace")
+	if operatorNs == "cs-test" || operatorNs == "openshift-operators" {
+		klog.Info("create CommonService CR in cs-test namespace")
 		if err = bs.CreateCsCR(); err != nil {
 			klog.Error("Create CommonService CR failed: ", err)
 			os.Exit(1)

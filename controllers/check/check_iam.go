@@ -57,7 +57,7 @@ func IamStatus(mgr manager.Manager) {
 // getIamSubscription return true if IAM subscription found, otherwise return false
 func getIamSubscription(r client.Reader) bool {
 	subName := "ibm-iam-operator"
-	subNs := "ibm-common-services"
+	subNs := "cs-test"
 	sub := &olmv1alpha1.Subscription{}
 	err := r.Get(context.TODO(), types.NamespacedName{Name: subName, Namespace: subNs}, sub)
 	return err == nil
@@ -82,7 +82,7 @@ func overallIamStatus(r client.Reader) string {
 func getJobStatus(r client.Reader, name string) string {
 	job := &batchv1.Job{}
 	jobName := name
-	jobNs := "ibm-common-services"
+	jobNs := "cs-test"
 	err := r.Get(context.TODO(), types.NamespacedName{Name: jobName, Namespace: jobNs}, job)
 	if err != nil {
 		return "NotReady"
@@ -97,7 +97,7 @@ func getJobStatus(r client.Reader, name string) string {
 func getDeploymentStatus(r client.Reader, name string) string {
 	deploy := &appsv1.Deployment{}
 	deployName := name
-	deployNs := "ibm-common-services"
+	deployNs := "cs-test"
 
 	err := r.Get(context.TODO(), types.NamespacedName{Name: deployName, Namespace: deployNs}, deploy)
 	if err != nil {

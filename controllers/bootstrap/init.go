@@ -112,11 +112,11 @@ func (b *Bootstrap) CreateCsSubscription() error {
 	if err != nil {
 		return err
 	}
-	klog.Info("create operator group in namespace ibm-common-services")
+	klog.Info("create operator group in namespace cs-test")
 	if err := b.createOperatorGroup(); err != nil {
 		return err
 	}
-	klog.Info("create cs operator in namespace ibm-common-services")
+	klog.Info("create cs operator in namespace cs-test")
 	if err := b.createOrUpdateResources(annotations, csSubResource); err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func (b *Bootstrap) CreateCsCR() error {
 
 	cs := util.NewUnstructured("operator.ibm.com", "CommonService", "v3")
 	cs.SetName("common-service")
-	cs.SetNamespace("ibm-common-services")
+	cs.SetNamespace("cs-test")
 	_, err = b.GetObject(cs)
 	if errors.IsNotFound(err) {
 		// Upgrade: Have ODLM and NO CR
@@ -152,7 +152,7 @@ func (b *Bootstrap) CreateCsCR() error {
 
 func (b *Bootstrap) createOperatorGroup() error {
 	existOG := &olmv1.OperatorGroupList{}
-	if err := b.Reader.List(context.TODO(), existOG, &client.ListOptions{Namespace: "ibm-common-services"}); err != nil {
+	if err := b.Reader.List(context.TODO(), existOG, &client.ListOptions{Namespace: "cs-test"}); err != nil {
 		return err
 	}
 	if len(existOG.Items) == 0 {
