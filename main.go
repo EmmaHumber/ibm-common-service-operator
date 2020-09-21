@@ -20,6 +20,7 @@ import (
 	"flag"
 	"os"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	olmv1 "github.com/operator-framework/api/pkg/operators/v1"
 	olmv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -88,46 +89,41 @@ func main() {
 
 	// New bootstrap Object
 	bs := bootstrap.NewBootstrap(mgr)
-	operatorNs, err := util.GetOperatorNamespace()
+	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
 		klog.Error("get operator namespace failed: ", err)
 		os.Exit(1)
 	}
-	// Create cs-test namespace
-	if err := bs.CreateNamespace(); err != nil {
-		klog.Error("create cs-test namespace failed: ", err)
+	// operatorNs, err := util.GetOperatorNamespace()
+	// if err != nil {
+	// 	klog.Error("get operator namespace failed: ", err)
+	// 	os.Exit(1)
+	// }
+
+	operatorNs := namespace
+	if namespace == "" {
+		operatorNs = "openshift-operators"
+	}
+
+	klog.Infof("create CommonService CR in namespace: %s", operatorNs)
+	if err = bs.CreateCsCR(operatorNs); err != nil {
+		klog.Error("Create CommonService CR failed: ", err)
 		os.Exit(1)
 	}
 
-	if operatorNs == "cs-test" || operatorNs == "openshift-operators" {
-		klog.Info("create CommonService CR in cs-test namespace")
-		if err = bs.CreateCsCR(); err != nil {
-			klog.Error("Create CommonService CR failed: ", err)
-			os.Exit(1)
-		}
+	// Check IAM pods status
+	go check.IamStatus(mgr)
 
-		// Check IAM pods status
-		go check.IamStatus(mgr)
-
-		if err = (&controllers.CommonServiceReconciler{
-			Client:    mgr.GetClient(),
-			Reader:    mgr.GetAPIReader(),
-			Manager:   deploy.NewDeployManager(mgr),
-			Bootstrap: bootstrap.NewBootstrap(mgr),
-			Log:       ctrl.Log.WithName("controllers").WithName("CommonService"),
-			Scheme:    mgr.GetScheme(),
-		}).SetupWithManager(mgr); err != nil {
-			klog.Error(err, "unable to create controller", "controller", "CommonService")
-			os.Exit(1)
-		}
-		// +kubebuilder:scaffold:builder
-	} else {
-		klog.Info("start create common service operator")
-		if err = bs.CreateCsSubscription(); err != nil {
-			klog.Error("create common service operator subscription failed: ", err)
-			os.Exit(1)
-		}
-		klog.Info("finish create common service operator")
+	if err = (&controllers.CommonServiceReconciler{
+		Client:    mgr.GetClient(),
+		Reader:    mgr.GetAPIReader(),
+		Manager:   deploy.NewDeployManager(mgr),
+		Bootstrap: bootstrap.NewBootstrap(mgr),
+		Log:       ctrl.Log.WithName("controllers").WithName("CommonService"),
+		Scheme:    mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		klog.Error(err, "unable to create controller", "controller", "CommonService")
+		os.Exit(1)
 	}
 
 	klog.Info("starting manager")

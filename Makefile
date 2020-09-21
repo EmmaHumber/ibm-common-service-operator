@@ -155,7 +155,7 @@ e2e-test: ## Run e2e test
 	@echo "Running e2e tests for the controllers."
 	@USE_EXISTING_CLUSTER=true \
 	OPERATOR_NAME=ibm-common-service-operator \
-	OPERATOR_NAMESPACE=cs-test \
+	OPERATOR_NAMESPACE=ibm-common-services \
 	go test ./controllers/... -coverprofile cover.out
 
 coverage: ## Run code coverage test

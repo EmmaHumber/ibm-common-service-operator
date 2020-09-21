@@ -17,9 +17,11 @@
 package bootstrap
 
 import (
+	"bytes"
 	"context"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	olmv1 "github.com/operator-framework/api/pkg/operators/v1"
@@ -62,7 +64,7 @@ func NewBootstrap(mgr manager.Manager) *Bootstrap {
 }
 
 // InitResources initialize resources at the bootstrap of operator
-func (b *Bootstrap) InitResources() error {
+func (b *Bootstrap) InitResources(namespace string) error {
 	// Get all the resources from the deployment annotations
 	annotations, err := b.GetAnnotations()
 	if err != nil {
@@ -70,12 +72,12 @@ func (b *Bootstrap) InitResources() error {
 	}
 
 	// create or update ODLM operator
-	if err := b.createOrUpdateResources(annotations, OdlmSubResources); err != nil {
+	if err := b.createOrUpdateResources(annotations, OdlmSubResources, namespace); err != nil {
 		return err
 	}
 
 	// create or update extra resources for common services
-	if err := b.createOrUpdateResources(annotations, strings.Split(annotations[CsExtResource], ",")); err != nil {
+	if err := b.createOrUpdateResources(annotations, strings.Split(annotations[CsExtResource], ","), namespace); err != nil {
 		return err
 	}
 
@@ -86,73 +88,101 @@ func (b *Bootstrap) InitResources() error {
 	if err := b.waitResourceReady("operator.ibm.com/v1alpha1", "OperandConfig"); err != nil {
 		return err
 	}
-	if err := b.createOrUpdateResources(annotations, OdlmCrResources); err != nil {
+	if err := b.createOrUpdateResources(annotations, OdlmCrResources, namespace); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (b *Bootstrap) CreateNamespace() error {
-	// Get all the resources from the deployment annotations
-	annotations, err := b.GetAnnotations()
-	if err != nil {
-		return err
+// func (b *Bootstrap) CreateNamespace() error {
+// 	// Get all the resources from the deployment annotations
+// 	annotations, err := b.GetAnnotations()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if err := b.createOrUpdateResources(annotations, CsNsResources, ""); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
+// func (b *Bootstrap) CreateCsSubscription() error {
+// 	// Get all the resources from the deployment annotations
+// 	annotations, err := b.GetAnnotations()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	klog.Info("create operator group in namespace ibm-common-services")
+// 	if err := b.createOperatorGroup(); err != nil {
+// 		return err
+// 	}
+// 	klog.Info("create cs operator in namespace ibm-common-services")
+// 	if err := b.createOrUpdateResources(annotations, csSubResource, ""); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
+func renderResourceTemplateWithNamespace(tmpl, namespace string) ([]bytes, error) {
+	resourceData := struct {
+		Namespace string
+	}{
+		Namespace: namespace,
 	}
 
-	if err := b.createOrUpdateResources(annotations, CsNsResources); err != nil {
-		return err
+	var resourceYaml bytes.Buffer
+	tc := template.Must(template.New("resourcetemplate").Parse(tmpl))
+	if err := tc.Execute(&resourceYaml, resourceData); err != nil {
+		return nil, err
 	}
-	return nil
+	return resourceYaml.Bytes(), nil
+
 }
 
-func (b *Bootstrap) CreateCsSubscription() error {
-	// Get all the resources from the deployment annotations
-	annotations, err := b.GetAnnotations()
-	if err != nil {
-		return err
-	}
-	klog.Info("create operator group in namespace cs-test")
-	if err := b.createOperatorGroup(); err != nil {
-		return err
-	}
-	klog.Info("create cs operator in namespace cs-test")
-	if err := b.createOrUpdateResources(annotations, csSubResource); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *Bootstrap) CreateCsCR() error {
+func (b *Bootstrap) CreateCsCR(namespace string) error {
 	odlm := util.NewUnstructured("operators.coreos.com", "Subscription", "v1alpha1")
 	odlm.SetName("operand-deployment-lifecycle-manager-app")
 	odlm.SetNamespace("openshift-operators")
 	_, err := b.GetObject(odlm)
 	if errors.IsNotFound(err) {
+		rscYaml, err := renderResourceTemplateWithNamespace(constant.CsCR, namespace)
+		if err != nil {
+			return err
+		}
 		// Fresh Intall: No ODLM
-		return b.createOrUpdateFromYaml([]byte(constant.CsCR))
+		return b.createOrUpdateFromYaml(rscYaml)
 	} else if err != nil {
 		return err
 	}
 
 	cs := util.NewUnstructured("operator.ibm.com", "CommonService", "v3")
 	cs.SetName("common-service")
-	cs.SetNamespace("cs-test")
+	cs.SetNamespace(namespace)
 	_, err = b.GetObject(cs)
 	if errors.IsNotFound(err) {
+		rscYaml, err := renderResourceTemplateWithNamespace(constant.CsNoSizeCR, namespace)
+		if err != nil {
+			return err
+		}
 		// Upgrade: Have ODLM and NO CR
-		return b.createOrUpdateFromYaml([]byte(constant.CsNoSizeCR))
+		return b.createOrUpdateFromYaml(rscYaml)
 	} else if err != nil {
 		return err
 	}
 
+	rscYaml, err := renderResourceTemplateWithNamespace(constant.CsCR, namespace)
+	if err != nil {
+		return err
+	}
 	// Restart: Have ODLM and CR
-	return b.createOrUpdateFromYaml([]byte(constant.CsCR))
+	return b.createOrUpdateFromYaml(rscYaml)
 }
 
 func (b *Bootstrap) createOperatorGroup() error {
 	existOG := &olmv1.OperatorGroupList{}
-	if err := b.Reader.List(context.TODO(), existOG, &client.ListOptions{Namespace: "cs-test"}); err != nil {
+	if err := b.Reader.List(context.TODO(), existOG, &client.ListOptions{Namespace: "ibm-common-services"}); err != nil {
 		return err
 	}
 	if len(existOG.Items) == 0 {
@@ -163,10 +193,14 @@ func (b *Bootstrap) createOperatorGroup() error {
 	return nil
 }
 
-func (b *Bootstrap) createOrUpdateResources(annotations map[string]string, resNames []string) error {
+func (b *Bootstrap) createOrUpdateResources(annotations map[string]string, resNames []string, namespace string) error {
 	for _, res := range resNames {
 		if r, ok := annotations[res]; ok {
-			if err := b.createOrUpdateFromYaml([]byte(r)); err != nil {
+			srcYaml, err := renderResourceTemplateWithNamespace(r, namespace)
+			if err != nil {
+				return err
+			}
+			if err := b.createOrUpdateFromYaml(srcYaml); err != nil {
 				return err
 			}
 		} else {

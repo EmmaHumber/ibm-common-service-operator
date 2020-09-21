@@ -63,7 +63,7 @@ func (r *CommonServiceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 
 	klog.Infof("Reconciling CommonService: %s", req.NamespacedName)
 	// Init common servcie bootstrap resource
-	if err := r.Bootstrap.InitResources(); err != nil {
+	if err := r.Bootstrap.InitResources(req.NamespacedName.Namespace); err != nil {
 		klog.Error("InitResources failed: ", err)
 	}
 
@@ -118,7 +118,7 @@ func (r *CommonServiceReconciler) updateOpcon(newConfigs []interface{}) error {
 	opcon := util.NewUnstructured("operator.ibm.com", "OperandConfig", "v1alpha1")
 	opconKey := types.NamespacedName{
 		Name:      "common-service",
-		Namespace: "cs-test",
+		Namespace: "ibm-common-services",
 	}
 	if err := r.Reader.Get(ctx, opconKey, opcon); err != nil {
 		klog.Error(err)
@@ -216,10 +216,10 @@ func checkKeyBeforeMerging(key string, defaultMap interface{}, changedMap interf
 	}
 }
 
-// Check if the request's NamespacedName is equal "cs-test/common-service"
+// Check if the request's NamespacedName is equal "ibm-common-services/common-service"
 func checkNamespace(key string) bool {
-	if key != "cs-test/common-service" {
-		klog.Infof("Ignore reconcile when commonservices.operator.ibm.com is NamespacedName '%s', only reconcile for NamespacedName 'cs-test/common-service'", key)
+	if key != "ibm-common-services/common-service" {
+		klog.Infof("Ignore reconcile when commonservices.operator.ibm.com is NamespacedName '%s', only reconcile for NamespacedName 'ibm-common-services/common-service'", key)
 		return false
 	}
 	return true
@@ -228,23 +228,23 @@ func checkNamespace(key string) bool {
 func filterNamespacePredicate() predicate.Predicate {
 	return predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
-			// Only reconcle when NamespacedName equal "cs-test/common-service"
+			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.Meta.GetNamespace() + "/" + e.Meta.GetName()
 			return checkNamespace(key)
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			// Only reconcle when NamespacedName equal "cs-test/common-service"
+			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.MetaNew.GetNamespace() + "/" + e.MetaNew.GetName()
 			return checkNamespace(key)
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
 			// Evaluates to false if the object has been confirmed deleted.
-			// Only reconcle when NamespacedName equal "cs-test/common-service"
+			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.Meta.GetNamespace() + "/" + e.Meta.GetName()
 			return !e.DeleteStateUnknown && checkNamespace(key)
 		},
 		GenericFunc: func(e event.GenericEvent) bool {
-			// Only reconcle when NamespacedName equal "cs-test/common-service"
+			// Only reconcle when NamespacedName equal "ibm-common-services/common-service"
 			key := e.Meta.GetNamespace() + "/" + e.Meta.GetName()
 			return checkNamespace(key)
 		},
