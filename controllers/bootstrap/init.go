@@ -125,7 +125,7 @@ func (b *Bootstrap) InitResources(namespace string) error {
 // 	return nil
 // }
 
-func renderResourceTemplateWithNamespace(tmpl, namespace string) ([]bytes, error) {
+func renderResourceTemplateWithNamespace(tmpl, namespace string) ([]byte, error) {
 	resourceData := struct {
 		Namespace string
 	}{
