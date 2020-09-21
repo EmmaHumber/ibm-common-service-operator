@@ -2155,7 +2155,7 @@ metadata:
                 - ibm-common-service-webhook
                 imagePullPolicy: Always
                 env:
-                  - name: WATCH_NAMESPACE
+                  - name: OPERATOR_NAMESPACE
                     valueFrom:
                       fieldRef:
                         fieldPath: metadata.namespace

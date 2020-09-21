@@ -20,7 +20,6 @@ import (
 	"flag"
 	"os"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	olmv1 "github.com/operator-framework/api/pkg/operators/v1"
 	olmv1alpha1 "github.com/operator-framework/api/pkg/operators/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -89,7 +88,7 @@ func main() {
 
 	// New bootstrap Object
 	bs := bootstrap.NewBootstrap(mgr)
-	namespace, err := k8sutil.GetWatchNamespace()
+	namespace, err := util.GetOperatorNamespace()
 	if err != nil {
 		klog.Error("get operator namespace failed: ", err)
 		os.Exit(1)
