@@ -2293,7 +2293,7 @@ spec:
                 env:
                 - name: OPERATOR_NAME
                   value: ibm-common-service-operator
-                - name: WATCH_NAMESPACE
+                - name: OPERATOR_NAMESPACE
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
