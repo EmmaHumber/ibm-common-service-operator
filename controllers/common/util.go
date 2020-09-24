@@ -136,7 +136,7 @@ func GetOperatorNamespace() (string, error) {
 		ns = strings.TrimSpace(string(nsBytes))
 	}
 	if len(ns) == 0 {
-		return "", fmt.Errorf("operator namespace is empty")
+		return "openshift-operators", nil
 	}
 	klog.V(1).Info("Found namespace", "Namespace", ns)
 	return ns, nil
